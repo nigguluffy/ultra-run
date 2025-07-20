@@ -1,0 +1,80 @@
+name: CI for QuizBots
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  mail: ${{ secrets.GITHUBMAIL }}
+  username: ${{ secrets.GITHUBNAME }}
+  ACTIONS_RUNNER_DEBUG: true
+  ACTIONS_STEP_DEBUG: true
+
+jobs:
+  quizbot1:
+    name: retina-Bot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone The retina Bot Repo
+        run: git clone https://${{ env.username }}:${{ secrets.GH_TOKEN }}@github.com/${{ secrets.REPOSLUG }} retina
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+        timeout-minutes: 5
+        continue-on-error: false
+
+      - name: Install project dependencies and run retina Bot
+        run: |
+          cd retina
+          pip install -r requirements.txt
+          python main.py
+        timeout-minutes: 340
+        continue-on-error: true
+
+  quizbot2:
+    name: remind  Bot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone The remind  Bot Repo
+        run: git clone https://${{ env.username }}:${{ secrets.GH_TOKEN }}@github.com/${{ secrets.REPOSLUG2 }} remind
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+        timeout-minutes: 5
+        continue-on-error: false
+
+      - name: Install project dependencies and run remind  Bot
+        run: |
+          cd remind
+          pip install -r requirements.txt
+          python main.py
+        timeout-minutes: 340
+        continue-on-error: true
+
+  looper:
+    name: Run QuizBot loop
+    needs: [quizbot1, quizbot2]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set Git Configs & Secrets
+        run: |
+          git config --global user.email "${{ env.mail }}"
+          git config --global user.name "${{ env.username }}"
+          git config --global pull.rebase false
+          git config --global credential.helper store
+          echo "https://${{ env.username }}:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+
+      - name: Create an empty commit
+        run: |
+          git clone https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY} temp
+          cd temp
+          git commit --allow-empty -m "[LOOP] Re-run Quiz workflow"
+          git push
