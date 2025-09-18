@@ -13,10 +13,10 @@ env:
   
 jobs:
   quizbot1:
-    name: Admitory-Bot
+    name: AULTRA-Bot
     runs-on: ubuntu-latest
     steps:
-      - name: Clone The REMEDICS Bot Repo
+      - name: Clone The Aultra Bot Repo
         run: git clone https://${{ secrets.GH_TOKEN }}@github.com/${{ secrets.REPOSLUG }} remedics
 
       - name: Set up Python
