@@ -67,6 +67,20 @@ jobs:
           git config --global credential.helper store
           echo "https://${{ env.username }}:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
 
+      - name: Notify Telegram (Restart in 5 minutes, BD Time)
+        run: |
+          TZ="Asia/Dhaka"
+          CURRENT_TIME=$(TZ=$TZ date +"%Y-%m-%d %H:%M:%S")
+          END_TIME=$(TZ=$TZ date -d "+345 minutes" +"%Y-%m-%d %H:%M:%S")
+          
+          MESSAGE="✅ Workflow complete. Bot is restarting in 5 minutes.\n\n🕒 Current time (BD): $CURRENT_TIME\n⏳ It will keep running until: $END_TIME"
+          
+          curl -X POST \
+            "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ secrets.CHAT_ID }} \
+            -d parse_mode=HTML \
+            -d text="$MESSAGE"
+
       - name: Create an empty commit
         run: |
           git clone https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY} temp
